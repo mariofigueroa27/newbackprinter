@@ -65,6 +65,7 @@ app.get("/api/:idtravel/vehicles", async (req, res) => {
   } finally {
     sql.close();
   }
+  
 });
 
 // Ruta para el método PUT
