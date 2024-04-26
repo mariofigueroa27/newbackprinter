@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const bodyParser = require('body-parser');
+const bodyParser = require("body-parser");
 const sql = require("mssql");
 
 app.use(cors());
@@ -33,6 +33,22 @@ app.get("/api/ships", async (req, res) => {
   }
 });
 
+// Ruta para obtener las últimas 10 órdenes de servicio
+app.get("/api/service-orders", async (req, res) => {
+  try {
+    await sql.connect(config);
+    const result = await sql.query(
+      "SELECT TOP 10 * FROM dbo.hu_service_order ORDER BY registered_at DESC"
+    );
+    res.json(result.recordset);
+  } catch (err) {
+    console.error("Error al obtener las órdenes de servicio:", err.message);
+    res.status(500).send("Error del servidor");
+  } finally {
+    sql.close();
+  }
+});
+
 // Ruta para obtener los viajes de una nave espacial específica
 app.get("/api/:idship/travels", async (req, res) => {
   const idShip = req.params.idship;
@@ -51,12 +67,12 @@ app.get("/api/:idship/travels", async (req, res) => {
 });
 
 // Ruta para obtener los vehículos de un viaje específico
-app.get("/api/:idtravel/vehicles", async (req, res) => {
-  const idTravel = req.params.idtravel;
+app.get("/api/:travel_id/:service_order_id/vehicles", async (req, res) => {
+  const { travel_id, service_order_id, vehicle_id } = req.params;
   try {
     await sql.connect(config);
     const result = await sql.query(
-      `SELECT * FROM dbo.hu_vehicle WHERE travel_id = ${idTravel} and labelled_date is null`
+      `SELECT * FROM dbo.operacion_roro WHERE travel_id = ${travel_id} AND service_order_id = ${service_order_id}`
     );
     res.json(result.recordset);
   } catch (err) {
@@ -65,14 +81,16 @@ app.get("/api/:idtravel/vehicles", async (req, res) => {
   } finally {
     sql.close();
   }
-  
 });
-
 // Ruta para el método PUT
 app.put("/api/actualizar-vehiculos", async (req, res) => {
   try {
     // Lista de IDs recibida en la solicitud
     const listaIds = req.body.ids;
+    // Campo service_order_id recibido en la solicitud
+    const serviceOrderId = req.body.service_order_id;
+    // Campo travel_id recibido en la solicitud
+    const travelId = req.body.travel_id;
 
     // Conexión a la base de datos
     await sql.connect(config);
@@ -80,7 +98,7 @@ app.put("/api/actualizar-vehiculos", async (req, res) => {
     // Iterar sobre la lista de IDs y actualizar los registros correspondientes en la base de datos
     for (const id of listaIds) {
       const result =
-        await sql.query`UPDATE dbo.hu_vehicle SET labelled_date = GETDATE() WHERE id = ${id}`;
+        await sql.query`UPDATE dbo.hu_vehicle SET labelled_date = GETDATE(), service_order_id = ${serviceOrderId}, travel_id = ${travelId} WHERE id = ${id}`;
       console.log(
         `Registros actualizados para el ID ${id}: ${result.rowsAffected}`
       );
@@ -95,6 +113,7 @@ app.put("/api/actualizar-vehiculos", async (req, res) => {
     res.status(500).send("Error al actualizar los registros");
   }
 });
+
 // Puerto en el que se ejecutará el servidor
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
