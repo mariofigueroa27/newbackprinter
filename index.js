@@ -72,7 +72,10 @@ app.get("/api/:travel_id/:service_order_id/vehicles", async (req, res) => {
   try {
     await sql.connect(config);
     const result = await sql.query(
-      `SELECT * FROM dbo.operacion_roro WHERE travel_id = ${travel_id} AND service_order_id = ${service_order_id}`
+      `SELECT o.*
+      FROM dbo.operacion_roro o
+      INNER JOIN dbo.hu_vehicle v ON o.vehicle_id = v.id
+      WHERE o.travel_id = ${travel_id} AND o.service_order_id = ${service_order_id} AND v.labelled_date IS NULL`
     );
     res.json(result.recordset);
   } catch (err) {
@@ -82,6 +85,7 @@ app.get("/api/:travel_id/:service_order_id/vehicles", async (req, res) => {
     sql.close();
   }
 });
+
 // Ruta para el método PUT
 app.put("/api/actualizar-vehiculos", async (req, res) => {
   try {
