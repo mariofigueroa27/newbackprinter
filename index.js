@@ -72,7 +72,7 @@ app.get("/api/:travel_id/:service_order_id/vehicles", async (req, res) => {
   try {
     await sql.connect(config);
     const result = await sql.query(
-      `SELECT o.*
+      `SELECT o.*, v.labelled_date
       FROM dbo.operacion_roro o
       INNER JOIN dbo.hu_vehicle v ON o.vehicle_id = v.id
       WHERE o.travel_id = ${travel_id} AND o.service_order_id = ${service_order_id}`
