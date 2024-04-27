@@ -75,7 +75,7 @@ app.get("/api/:travel_id/:service_order_id/vehicles", async (req, res) => {
       `SELECT o.*
       FROM dbo.operacion_roro o
       INNER JOIN dbo.hu_vehicle v ON o.vehicle_id = v.id
-      WHERE o.travel_id = ${travel_id} AND o.service_order_id = ${service_order_id} AND v.labelled_date IS NULL`
+      WHERE o.travel_id = ${travel_id} AND o.service_order_id = ${service_order_id}`
     );
     res.json(result.recordset);
   } catch (err) {
