@@ -6,7 +6,7 @@ const sql = require("mssql");
 
 app.use(cors());
 // Configuración de conexión a la base de datos
-const config = {
+const config = { 
   user: "operador",
   password: "Fabrica2024$",
   server: "srvcsmp003.database.windows.net",
