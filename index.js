@@ -91,10 +91,6 @@ app.put("/api/actualizar-vehiculos", async (req, res) => {
   try {
     // Lista de IDs recibida en la solicitud
     const listaIds = req.body.ids;
-    // Campo service_order_id recibido en la solicitud
-    const serviceOrderId = req.body.service_order_id;
-    // Campo travel_id recibido en la solicitud
-    const travelId = req.body.travel_id;
 
     // Conexión a la base de datos
     await sql.connect(config);
@@ -102,7 +98,7 @@ app.put("/api/actualizar-vehiculos", async (req, res) => {
     // Iterar sobre la lista de IDs y actualizar los registros correspondientes en la base de datos
     for (const id of listaIds) {
       const result =
-        await sql.query`UPDATE dbo.hu_vehicle SET labelled_date = GETDATE(), service_order_id = ${serviceOrderId}, travel_id = ${travelId} WHERE id = ${id}`;
+        await sql.query`UPDATE dbo.hu_vehicle SET labelled_date = GETDATE() WHERE id = ${id}`;
       console.log(
         `Registros actualizados para el ID ${id}: ${result.rowsAffected}`
       );
