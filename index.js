@@ -38,7 +38,7 @@ app.get("/api/service-orders", async (req, res) => {
   try {
     await sql.connect(config);
     const result = await sql.query(
-      "SELECT TOP 10 * FROM dbo.hu_service_order ORDER BY registered_at DESC"
+      "SELECT * FROM dbo.hu_service_order ORDER BY registered_at DESC"
     );
     res.json(result.recordset);
   } catch (err) {
@@ -86,6 +86,7 @@ app.get("/api/:travel_id/:service_order_id/vehicles", async (req, res) => {
   }
 });
 
+/*
 // Ruta para el método PUT
 app.put("/api/actualizar-vehiculos", async (req, res) => {
   try {
@@ -102,6 +103,45 @@ app.put("/api/actualizar-vehiculos", async (req, res) => {
       console.log(
         `Registros actualizados para el ID ${id}: ${result.rowsAffected}`
       );
+    }
+
+    // Cerrar la conexión a la base de datos
+    await sql.close();
+
+    res.send("Registros actualizados correctamente");
+  } catch (error) {
+    console.error("Error al actualizar los registros:", error.message);
+    res.status(500).send("Error al actualizar los registros");
+  }
+});
+*/
+
+// Ruta para el método PUT
+app.put("/api/actualizar-vehiculos", async (req, res) => {
+  try {
+    // Lista de IDs recibida en la solicitud
+    const listaIds = req.body.ids;
+
+    // Tamaño del lote para procesamiento por partes
+    const batchSize = 10; // Ajusta según tu caso
+    const totalBatches = Math.ceil(listaIds.length / batchSize);
+
+    // Conexión a la base de datos
+    await sql.connect(config);
+
+    // Función para actualizar un lote de IDs
+    const actualizarLote = async (ids) => {
+      // Convertir la lista de IDs en una cadena separada por comas
+      const idsString = ids.join(",");
+      const query = `UPDATE dbo.hu_vehicle SET labelled_date = GETDATE() WHERE id IN (${idsString})`;
+      const result = await sql.query(query);
+      console.log(`Registros actualizados para los IDs ${idsString}: ${result.rowsAffected}`);
+    };
+
+    // Procesar los IDs en lotes
+    for (let i = 0; i < totalBatches; i++) {
+      const batch = listaIds.slice(i * batchSize, (i + 1) * batchSize);
+      await actualizarLote(batch);
     }
 
     // Cerrar la conexión a la base de datos
